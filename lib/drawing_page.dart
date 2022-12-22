@@ -1,10 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'editors.dart';
-import 'shape_list.dart';
+import 'package:oop_lab_2/shapes.dart';
+import 'shape_editors.dart';
 import 'shape_painter.dart';
-import 'shapes.dart';
 import 'variant_values.dart';
+
+class _Tool {
+  final String name;
+  final ShapeEditor editor;
+
+  _Tool({required this.name, required this.editor});
+}
 
 class DrawingPage extends StatefulWidget {
   const DrawingPage({Key? key}) : super(key: key);
@@ -14,20 +20,35 @@ class DrawingPage extends StatefulWidget {
 }
 
 class _DrawingPageState extends State<DrawingPage> {
-  Editor _currentEditor = PointEditor();
+  late _Tool _currentTool;
+  late final List<_Tool> _tools;
 
-  void _onMenuItemSelected(Editor value) {
-    setState(() {
-      _currentEditor = value;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _tools = [
+      _Tool(
+          name: 'Крапка',
+          editor: PointEditor(),),
+      _Tool(
+          name: 'Лінія',
+          editor: LineEditor(),),
+      _Tool(
+          name: 'Прямокутник',
+          editor: RectangleEditor()),
+      _Tool(
+          name: 'Еліпс',
+          editor: EllipseEditor()),
+    ];
+    _currentTool = _tools.first;
   }
 
-  _getButtonChild(String text, Type editorType) {
-    if (_currentEditor.runtimeType != editorType) return Text(text);
+  _getButtonChild(_Tool tool) {
+    if (_currentTool != tool) return Text(tool.name);
     //Якщо тип кнопки співпадає з типом вибраного Editor'а, відображаємо прапорець
     return Row(
       children: [
-        Text(text),
+        Text(tool.name),
         const SizedBox(
           width: 5,
         ),
@@ -54,26 +75,16 @@ class _DrawingPageState extends State<DrawingPage> {
   Widget _getMenuButton() => PopupMenuButton(
         child: _getMenuChild(),
         itemBuilder: (context) {
-          return [
-            PopupMenuItem<Editor>(
-              value: PointEditor(),
-              child: _getButtonChild('Крапка', PointEditor),
-            ),
-            PopupMenuItem<Editor>(
-              value: LineEditor(),
-              child: _getButtonChild('Лінія', LineEditor),
-            ),
-            PopupMenuItem<Editor>(
-              value: RectangleEditor(),
-              child: _getButtonChild('Прямокутник', RectangleEditor),
-            ),
-            PopupMenuItem<Editor>(
-              value: EllipseEditor(),
-              child: _getButtonChild('Еліпс', EllipseEditor),
-            ),
-          ];
+          return _tools
+              .map((e) =>
+                  PopupMenuItem<_Tool>(value: e, child: _getButtonChild(e)))
+              .toList();
         },
-        onSelected: _onMenuItemSelected,
+        onSelected: (_Tool value) {
+          setState(() {
+            _currentTool = value;
+          });
+        },
       );
 
   //Отримуємо об'єкт, що задає стиль обведення поля малювання
@@ -87,6 +98,7 @@ class _DrawingPageState extends State<DrawingPage> {
 
   @override
   Widget build(BuildContext context) {
+    ShapeEditor editor = _currentTool.editor;
     return Scaffold(
       appBar: AppBar(
         title: _getMenuButton(),
@@ -97,18 +109,18 @@ class _DrawingPageState extends State<DrawingPage> {
         child: Container(
           decoration: _getDrawContainerDecoration(),
           child: GestureDetector(
-            onPanDown: _currentEditor.onPanDown,
-            onPanUpdate: _currentEditor.onPanUpdate,
-            onPanEnd: _currentEditor.onPanEnd,
+            onPanDown: editor.onPanDown,
+            onPanUpdate: editor.onPanUpdate,
+            onPanEnd: editor.onPanEnd,
             child: ClipRRect(
               child: SizedBox(
                 width: double.maxFinite,
                 height: double.maxFinite,
                 //Оновлюємо поле малювання з кожним оновленням списку фігур
                 child: ValueListenableBuilder<List<Shape>>(
-                  valueListenable: shapes,
+                  valueListenable: ShapeEditor.shapesListener,
                   builder: (context, shapes, _) => CustomPaint(
-                    painter: ShapePainter(),
+                    painter: ShapePainter(shapes),
                   ),
                 ),
               ),
