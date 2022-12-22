@@ -28,17 +28,15 @@ class _DrawingPageState extends State<DrawingPage> {
     super.initState();
     _tools = [
       _Tool(
-          name: 'Крапка',
-          editor: PointEditor(),),
+        name: 'Крапка',
+        editor: PointEditor(),
+      ),
       _Tool(
-          name: 'Лінія',
-          editor: LineEditor(),),
-      _Tool(
-          name: 'Прямокутник',
-          editor: RectangleEditor()),
-      _Tool(
-          name: 'Еліпс',
-          editor: EllipseEditor()),
+        name: 'Лінія',
+        editor: LineEditor(),
+      ),
+      _Tool(name: 'Прямокутник', editor: RectangleEditor()),
+      _Tool(name: 'Еліпс', editor: EllipseEditor()),
     ];
     _currentTool = _tools.first;
   }

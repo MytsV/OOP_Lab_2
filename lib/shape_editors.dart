@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:oop_lab_2/shapes.dart';
+
 import 'editor.dart';
 
 abstract class ShapeEditor implements Editor {
   static final shapesListener = ValueNotifier<List<Shape>>([]);
   Shape? _lastShape;
-  
+
   void _onShapeFinished() {
     if (_lastShape != null) {
       shapesListener.value = List.from(shapesListener.value)
         ..remove(_lastShape);
       _lastShape!.type = ShapeType.regular;
-      shapesListener.value = List.from(shapesListener.value)
-        ..add(_lastShape!);
+      shapesListener.value = List.from(shapesListener.value)..add(_lastShape!);
     }
     _lastShape = null;
   }
@@ -23,8 +23,7 @@ abstract class ShapeEditor implements Editor {
       shapesListener.value = List.from(shapesListener.value)
         ..remove(_lastShape);
     }
-    shapesListener.value = List.from(shapesListener.value)
-      ..add(shape);
+    shapesListener.value = List.from(shapesListener.value)..add(shape);
     _lastShape = shape;
   }
 }
@@ -86,10 +85,14 @@ class RectangleEditor extends ShapeEditor {
 
 class EllipseEditor extends ShapeEditor {
   Offset? _start;
+  PointShape? _centerPoint;
 
   @override
   void onPanDown(DragDownDetails details) {
     _start = details.localPosition;
+    _centerPoint = PointShape(details.localPosition);
+    ShapeEditor.shapesListener.value =
+        List.from(ShapeEditor.shapesListener.value)..add(_centerPoint!);
   }
 
   @override
@@ -101,5 +104,7 @@ class EllipseEditor extends ShapeEditor {
   @override
   void onPanEnd(DragEndDetails details) {
     _onShapeFinished();
+    ShapeEditor.shapesListener.value =
+        List.from(ShapeEditor.shapesListener.value)..remove(_centerPoint!);
   }
 }
